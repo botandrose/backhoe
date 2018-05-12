@@ -6,19 +6,18 @@ module Backhoe
   mattr_accessor(:file_path) { "db/data.sql" }
     
   class << self
-    def dump
-      autodetect_adapter.dump
+    def dump file_path: Backhoe.file_path
+      autodetect_adapter.new(database_config, file_path).dump
     end
 
-    def load
-      autodetect_adapter.load
+    def load file_path: Backhoe.file_path
+      autodetect_adapter.new(database_config, file_path).load
     end
 
     private
 
     def autodetect_adapter
-      klass = const_get(database_config["adapter"].camelize)
-      klass.new(database_config, file_path)
+      const_get(database_config["adapter"].camelize)
     end
 
     def database_config
