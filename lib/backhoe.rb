@@ -6,8 +6,8 @@ module Backhoe
   mattr_accessor(:file_path) { "db/data.sql" }
     
   class << self
-    def dump file_path: Backhoe.file_path
-      autodetect_adapter.new(database_config, file_path).dump
+    def dump file_path: Backhoe.file_path, **options
+      autodetect_adapter.new(database_config, file_path).dump **options
     end
 
     def load file_path: Backhoe.file_path
@@ -36,10 +36,10 @@ module Backhoe
   end
 
   class Mysql < Base
-    def dump
+    def dump skip_tables: []
       mysqldump = `which mysqldump`.strip
       raise RuntimeError, "Cannot find mysqldump." if mysqldump.blank?
-      sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{mysql_options} > #{file_path}"
+      sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options(skip_tables)} #{mysql_options} > #{file_path}"
     end
 
     def load
@@ -49,6 +49,12 @@ module Backhoe
     end
 
     private
+
+    def skip_table_options skip_tables
+      skip_tables.map do |table|
+        "--ignore-table=#{config["database"]}.#{table}"
+      end.join(" ")
+    end
     
     def mysql_options
       options =  " -u #{config["username"]}"
@@ -62,7 +68,7 @@ module Backhoe
   Mysql2 = Mysql
 
   class Sqlite3 < Base
-    def dump
+    def dump **_
       FileUtils.cp database, file_path
     end
 
@@ -72,7 +78,7 @@ module Backhoe
   end
 
   class Postgresql < Base
-    def dump
+    def dump **_
       pg_dump = `which pg_dump`.strip
       raise RuntimeError, "Cannot find pg_dump." if pg_dump.blank?
       sh "#{pg_dump} -c -f#{file_path} #{database}"
