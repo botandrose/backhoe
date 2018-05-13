@@ -65,6 +65,64 @@ module Backhoe
     end
   end
 
+  module MysqlSkipColumns
+    def dump **options
+      if skip_columns = options.delete(:skip_columns)
+        SanitizedDatabase.new(skip_columns, file_path).dump do |skip_tables|
+          super options.merge(skip_tables: skip_tables)
+        end
+      else
+        super
+      end
+    end
+
+    private
+
+    class SanitizedDatabase < Struct.new(:config, :file_path)
+      def dump
+        with_sanitized_tables do
+          yield skip_tables
+        end
+        skip_tables.each do |table|
+          File.write file_path, "RENAME TABLE `sanitized_#{table}` TO `#{table}`;\n", mode: "a"
+        end
+      end
+
+      private
+
+      def skip_tables
+        config.keys
+      end
+
+      def with_sanitized_tables
+        ActiveRecord::Base.transaction do
+          config.each do |table, columns|
+            sanitized_table = "sanitized_#{table}"
+            sql <<-SQL
+              DROP TABLE IF EXISTS `#{sanitized_table}`;
+              CREATE TABLE `#{sanitized_table}` LIKE `#{table}`;
+              INSERT INTO `#{sanitized_table}` SELECT * FROM `#{table}`;
+              ALTER TABLE `#{sanitized_table}` #{columns.map { |column| "DROP `#{column}`" }.join(", ")};
+            SQL
+          end
+
+          yield
+
+          config.each do |table, _|
+            sql "DROP TABLE `sanitized_#{table}`"
+          end
+        end
+      end
+
+      def sql queries
+        queries.split(";").select(&:present?).each do |query|
+          ActiveRecord::Base.connection.execute query
+        end
+      end
+    end
+  end
+  Mysql.prepend MysqlSkipColumns
+
   Mysql2 = Mysql
 
   class Sqlite3 < Base
