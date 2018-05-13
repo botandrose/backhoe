@@ -52,7 +52,7 @@ module Backhoe
           yield skip_tables
         end
         skip_tables.each do |table|
-          File.write file_path, "RENAME TABLE `sanitized_#{table}` TO `#{table}`;\n", mode: "a"
+          File.write file_path, "RENAME TABLE `sanitized_#{table}` TO `#{table}`;", mode: "a"
         end
       end
 

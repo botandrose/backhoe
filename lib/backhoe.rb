@@ -2,6 +2,7 @@ require "backhoe/version"
 require "backhoe/mysql"
 require "backhoe/postgresql"
 require "backhoe/sqlite"
+require "active_record"
 
 module Backhoe
   mattr_accessor(:file_path) { "db/data.sql" }
