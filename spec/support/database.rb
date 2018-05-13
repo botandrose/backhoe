@@ -1,34 +1,4 @@
 class Database < Struct.new(:config)
-  def setup
-    create_db
-    load_schema
-  end
-  
-  def teardown
-    destroy_db
-  end
-
-  def load path
-    create_db
-    File.read(path).split(/;$/).each do |line|
-      execute line
-    end
-  end
-
-  def execute *args
-    ActiveRecord::Base.connection.execute *args
-  end
-
-  def schema
-    schema_dumper = ActiveRecord::Base.connection.create_schema_dumper({})
-    schema = StringIO.new
-    schema_dumper.send(:tables, schema)
-    schema.rewind
-    schema.read
-  end
-
-  private
-
   def create_db
     ActiveRecord::Base.establish_connection(config.merge(database: nil))
     ActiveRecord::Base.connection.recreate_database(config["database"])
@@ -54,6 +24,25 @@ class Database < Struct.new(:config)
 
   def destroy_db
     ActiveRecord::Base.connection.drop_database(config["database"])
+  end
+
+  def load_file path
+    create_db
+    File.read(path).split(/;$/).each do |line|
+      execute line
+    end
+  end
+
+  def execute *args
+    ActiveRecord::Base.connection.execute *args
+  end
+
+  def schema
+    schema_dumper = ActiveRecord::Base.connection.create_schema_dumper({})
+    schema = StringIO.new
+    schema_dumper.send(:tables, schema)
+    schema.rewind
+    schema.read
   end
 end
 
