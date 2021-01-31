@@ -1,4 +1,6 @@
 language: ruby
+gemfile:
+  - gemfiles/activerecord_5.2.gemfile
 services:
   - mysql
 cache:

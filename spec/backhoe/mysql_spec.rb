@@ -1,4 +1,5 @@
 require "support/database"
+require "yaml"
 require "tempfile"
 
 RSpec.describe Backhoe::Mysql do
