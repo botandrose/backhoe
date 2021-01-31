@@ -38,11 +38,25 @@ class Database < Struct.new(:config)
   end
 
   def schema
-    schema_dumper = ActiveRecord::Base.connection.create_schema_dumper({})
     schema = StringIO.new
     schema_dumper.send(:tables, schema)
     schema.rewind
     schema.read
+  end
+
+  def schema_dumper
+    if version_5_1?
+      ActiveRecord::SchemaDumper.send(:new, ActiveRecord::Base.connection, {
+        table_name_prefix: ActiveRecord::Base.table_name_prefix,
+        table_name_suffix: ActiveRecord::Base.table_name_suffix,
+      })
+    else
+      ActiveRecord::Base.connection.create_schema_dumper({})
+    end
+  end
+
+  def version_5_1?
+    ActiveRecord.version.approximate_recommendation == "~> 5.1"
   end
 end
 

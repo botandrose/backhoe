@@ -11,6 +11,19 @@ RSpec.describe Backhoe::Mysql do
     described_class.new(config, file_path)
   end
 
+  let(:options) {
+    version = ActiveRecord.version.approximate_recommendation
+    if version == "~> 5.1"
+      'force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8"'
+    elsif version == "~> 5.2"
+      'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade'
+    elsif version == "~> 6.0"
+      'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade'
+    elsif version == "~> 6.1"
+      'charset: "utf8mb4", force: :cascade'
+    end
+  }
+
   describe "#dump" do
     around do |example|
       database.create_db
@@ -24,12 +37,12 @@ RSpec.describe Backhoe::Mysql do
         subject.dump
         database.load_file file_path
         expect(database.schema).to eq <<-SCHEMA
-  create_table "posts", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
   end
 
-  create_table "users", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
     t.string "passhash"
@@ -44,7 +57,7 @@ RSpec.describe Backhoe::Mysql do
         subject.dump skip_tables: [:posts]
         database.load_file file_path
         expect(database.schema).to eq <<-SCHEMA
-  create_table "users", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
     t.string "passhash"
@@ -59,12 +72,12 @@ RSpec.describe Backhoe::Mysql do
         subject.dump skip_columns: { users: [:passhash] }
         database.load_file file_path
         expect(database.schema).to eq <<-SCHEMA
-  create_table "posts", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
   end
 
-  create_table "users", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
   end
@@ -76,7 +89,7 @@ RSpec.describe Backhoe::Mysql do
         subject.dump skip_tables: [:posts], skip_columns: { users: [:passhash] }
         database.load_file file_path
         expect(database.schema).to eq <<-SCHEMA
-  create_table "users", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
   end
@@ -98,12 +111,12 @@ RSpec.describe Backhoe::Mysql do
     it "loads the supplied file_path into the current database" do
       subject.load
       expect(database.schema).to eq <<-SCHEMA
-  create_table "posts", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
     t.integer "user_id"
     t.text "body"
   end
 
-  create_table "users", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+  create_table "users", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
     t.integer "name"
     t.string "email"
     t.string "passhash"
