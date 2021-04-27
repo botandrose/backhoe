@@ -11,7 +11,7 @@ module Backhoe
     def load
       psql = `which psql`.strip
       raise RuntimeError, "Cannot find psql." if psql.blank?
-      sh "#{psql} -q -d#{database} -f#{file_path}"
+      sh "#{psql} -P pager=off -q -d#{database} -f#{file_path}"
     end
   end
 end
