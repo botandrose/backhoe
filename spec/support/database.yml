@@ -2,4 +2,5 @@ adapter: mysql2
 database: backhoe_test
 username: root
 password:
+ssl_mode: disabled
 

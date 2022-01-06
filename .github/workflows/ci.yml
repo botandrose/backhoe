@@ -1,0 +1,27 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        gemfile: [ activerecord_5.1, activerecord_5.2, activerecord_6.0, activerecord_6.1 ]
+        ruby: [ 2.6 ]
+
+    runs-on: ubuntu-18.04
+    env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: 5.7
+          my-cnf: |
+            socket=/tmp/mysql.sock
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 10
+      - run: bundle exec rake
+

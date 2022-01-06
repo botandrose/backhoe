@@ -1,5 +1,5 @@
 # Backhoe
-[![Build Status](https://travis-ci.org/botandrose/backhoe.svg)](https://travis-ci.org/botandrose/backhoe)
+[![CI Status](https://github.com/botandrose/backhoe/workflows/CI/badge.svg?branch=master)](https://github.com/botandrose/backhoe/actions?query=workflow%3ACI+branch%3Amaster)
 
 Dump and load current ActiveRecord database to and from a file.
 
