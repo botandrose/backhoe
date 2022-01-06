@@ -14,13 +14,13 @@ RSpec.describe Backhoe::Mysql do
   let(:options) {
     version = ActiveRecord.version.approximate_recommendation
     if version == "~> 5.1"
-      'force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8"'
+      'force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb3"'
     elsif version == "~> 5.2"
-      'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade'
+      'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb3", force: :cascade'
     elsif version == "~> 6.0"
-      'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade'
+      'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade'
     elsif version == "~> 6.1"
-      'charset: "utf8mb4", force: :cascade'
+      'charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade'
     end
   }
 
@@ -111,12 +111,12 @@ RSpec.describe Backhoe::Mysql do
     it "loads the supplied file_path into the current database" do
       subject.load
       expect(database.schema).to eq <<-SCHEMA
-  create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+  create_table "posts", #{options.sub(/utf8mb3\b/, "utf8mb4 COLLATE=utf8mb4_0900_ai_ci")} do |t|
     t.integer "user_id"
     t.text "body"
   end
 
-  create_table "users", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+  create_table "users", #{options.sub(/utf8mb3\b/, "utf8mb4 COLLATE=utf8mb4_0900_ai_ci")} do |t|
     t.integer "name"
     t.string "email"
     t.string "passhash"
