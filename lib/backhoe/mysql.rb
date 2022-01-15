@@ -37,7 +37,7 @@ module Backhoe
         SanitizedDatabase.new(skip_columns, file_path).dump do |skip_tables|
           options[:skip_tables] ||= []
           options[:skip_tables] += skip_tables
-          super options
+          super **options
         end
       else
         super
