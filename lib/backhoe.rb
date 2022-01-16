@@ -24,8 +24,18 @@ module Backhoe
 
     def database_config
       env = Rails.env || "development"
-      config = ActiveRecord::Base.configurations[env]
-      HashWithIndifferentAccess.new(config)
+      configs = ActiveRecord::Base.configurations
+      hash = if configs.respond_to?(:configs_for)
+        config = configs.configs_for(env_name: env).first
+        if config.respond_to?(:configuration_hash)
+          config.configuration_hash # rails 7
+        else
+          config.config # rails 6
+        end
+      else
+        configs[env] # rails 5
+      end
+      HashWithIndifferentAccess.new(hash)
     end
   end
 end
