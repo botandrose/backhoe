@@ -5,13 +5,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gemfile: [ activerecord_5.1, activerecord_5.2, activerecord_6.0, activerecord_6.1 ]
+        gemfile: [ activerecord_5.1, activerecord_5.2, activerecord_6.0, activerecord_6.1, activerecord_7.0 ]
         ruby: [ 2.6, 2.7, 3.0 ]
         exclude:
-          - gemfile: rails_5.1
+          - gemfile: activerecord_5.1
             ruby: 3.0
-          - gemfile: rails_5.2
+          - gemfile: activerecord_5.2
             ruby: 3.0
+          - gemfile: activerecord_7.0
+            ruby: 2.6
 
     runs-on: ubuntu-18.04
     env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
