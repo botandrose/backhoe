@@ -18,6 +18,7 @@ Backhoe.load drop_and_create: true # injects DROP and CREATE statements into the
 
 # Backup db to S3
 Backhoe.backup "bucket-name/folder" # => dumps db to e.g. s3://bucket-name/folder/2023-04-09T16:41:26Z.sql.gz via AWS CLI, assuming that credentials are already configured.
+Backhoe.backup "bucket-name/folder", access_key: "abc123", secret_key: "def456" # => manually specify AWS creds
 ```
 
 ## Development

@@ -16,12 +16,17 @@ module Backhoe
       Load.new(Database.new, file_path, drop_and_create).call
     end
 
-    def backup s3_path
+    def backup s3_path, access_key: nil, secret_key: nil
       require "time"
       filename = "#{Time.now.utc.iso8601}.sql.gz"
       path = "/tmp/#{filename}"
       dump file_path: path
-      Kernel.system "aws s3 mv #{path} s3://#{s3_path}/#{filename}"
+
+      command = "aws s3 mv #{path} s3://#{s3_path}/#{filename}"
+      if access_key && secret_key
+        command = "AWS_ACCESS_KEY_ID=#{access_key} AWS_SECRET_ACCESS_KEY=#{secret_key} #{command}"
+      end
+      Kernel.system command
     end
   end
 end
