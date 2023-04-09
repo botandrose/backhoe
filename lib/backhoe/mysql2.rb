@@ -5,13 +5,15 @@ module Backhoe
     def dump skip_tables: []
       mysqldump = `which mysqldump`.strip
       raise RuntimeError, "Cannot find mysqldump." if mysqldump.blank?
-      sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options(skip_tables)} #{mysql_options} > #{file_path}"
+      pipe = file_path =~ /\.gz$/ ? "gzip -9f" : "cat"
+      sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options(skip_tables)} #{mysql_options} | #{pipe} > #{file_path}"
     end
 
     def load
       mysql = `which mysql`.strip
       raise RuntimeError, "Cannot find mysql." if mysql.blank?
-      sh "#{mysql} #{mysql_options} < #{file_path}"
+      pipe = file_path =~ /\.gz$/ ? "zcat" : "cat"
+      sh "#{pipe} #{file_path} | #{mysql} #{mysql_options}"
     end
 
     private

@@ -47,6 +47,29 @@ RSpec.describe Backhoe::Mysql2 do
       end
     end
 
+    describe "with file_path ending in .gz" do
+      let(:file_path) { Tempfile.new(["db",".sql.gz"]).path }
+
+      it "dumps and gzips the current database to the supplied file_path" do
+        subject.dump
+        system "gunzip #{file_path}"
+        database.load_file file_path.sub(".gz","")
+        expect(database.schema).to eq <<-SCHEMA
+  create_table "posts", #{options} do |t|
+    t.integer "user_id"
+    t.text "body"
+  end
+
+  create_table "users", #{options} do |t|
+    t.integer "name"
+    t.string "email"
+    t.string "passhash"
+  end
+
+        SCHEMA
+      end
+    end
+
     describe ":skip_tables" do
       it "skips the supplied tables from the dump" do
         subject.dump skip_tables: [:posts]
@@ -101,24 +124,48 @@ RSpec.describe Backhoe::Mysql2 do
       database.destroy_db
     end
 
-    let(:file_path) { "spec/support/example.sql" }
+    describe "with file_path ending in .sql" do
+      let(:file_path) { "spec/support/example.sql" }
 
-    it "loads the supplied file_path into the current database" do
-      subject.load
-      expect(database.schema).to eq <<-SCHEMA
-  create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+      it "loads the supplied file_path into the current database" do
+        subject.load
+        expect(database.schema).to eq <<-SCHEMA
+    create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+      t.integer "user_id"
+      t.text "body"
+    end
+
+    create_table "users", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+      t.integer "name"
+      t.string "email"
+      t.string "passhash"
+    end
+
+        SCHEMA
+      end
+    end
+
+    describe "with file_path ending in .gz" do
+      let(:file_path) { "spec/support/example.sql.gz" }
+
+      it "dumps and gzips the current database to the supplied file_path" do
+        subject.load
+        expect(database.schema).to eq <<-SCHEMA
+  create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
   end
 
-  create_table "users", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+  create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
     t.string "passhash"
   end
 
-      SCHEMA
+        SCHEMA
+      end
     end
+
   end
 end
 

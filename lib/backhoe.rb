@@ -15,11 +15,10 @@ module Backhoe
 
     def backup s3_path
       require "time"
-      filename = "#{Time.now.utc.iso8601}.sql"
+      filename = "#{Time.now.utc.iso8601}.sql.gz"
       path = "/tmp/#{filename}"
       dump file_path: path
-      Kernel.system "gzip -9f #{path}"
-      Kernel.system "aws s3 mv #{path}.gz s3://#{s3_path}/#{filename}.gz"
+      Kernel.system "aws s3 mv #{path} s3://#{s3_path}/#{filename}"
     end
 
     private
