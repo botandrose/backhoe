@@ -10,8 +10,8 @@ module Backhoe
       Mysql.new(database_config, file_path).dump **options
     end
 
-    def load file_path: Backhoe.file_path
-      Mysql.new(database_config, file_path).load
+    def load file_path: Backhoe.file_path, **options
+      Mysql.new(database_config, file_path).load **options
     end
 
     def backup s3_path

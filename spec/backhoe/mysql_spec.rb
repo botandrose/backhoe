@@ -6,7 +6,6 @@ require "tempfile"
 RSpec.describe Backhoe::Mysql do
   let(:config) { YAML.load_file("spec/support/database.yml")["test"] }
   let(:database) { Database.new(config) }
-  let(:file_path) { Tempfile.new.path }
 
   subject do
     described_class.new(config, file_path)
@@ -20,6 +19,8 @@ RSpec.describe Backhoe::Mysql do
   }
 
   describe "#dump" do
+    let(:file_path) { Tempfile.new.path }
+
     around do |example|
       database.create_db
       database.load_schema
@@ -130,16 +131,16 @@ RSpec.describe Backhoe::Mysql do
       it "loads the supplied file_path into the current database" do
         subject.load
         expect(database.schema).to eq <<-SCHEMA
-    create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
-      t.integer "user_id"
-      t.text "body"
-    end
+  create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+    t.integer "user_id"
+    t.text "body"
+  end
 
-    create_table "users", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
-      t.integer "name"
-      t.string "email"
-      t.string "passhash"
-    end
+  create_table "users", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
+    t.integer "name"
+    t.string "email"
+    t.string "passhash"
+  end
 
         SCHEMA
       end
@@ -166,6 +167,33 @@ RSpec.describe Backhoe::Mysql do
       end
     end
 
+    describe "with drop_and_create option enabled" do
+      let(:file_path) { "spec/support/example.sql" }
+
+      it "dumps and gzips the current database to the supplied file_path" do
+        database.load_schema do
+          create_table :comments do |t|
+            t.integer :user_id
+            t.string :text
+          end
+        end
+
+        subject.load drop_and_create: true
+        expect(database.schema).to eq <<-SCHEMA
+  create_table "posts", #{options} do |t|
+    t.integer "user_id"
+    t.text "body"
+  end
+
+  create_table "users", #{options} do |t|
+    t.integer "name"
+    t.string "email"
+    t.string "passhash"
+  end
+
+        SCHEMA
+      end
+    end
   end
 end
 

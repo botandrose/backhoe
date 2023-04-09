@@ -11,11 +11,16 @@ module Backhoe
       sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options(skip_tables)} #{mysql_options} | #{pipe} > #{file_path}"
     end
 
-    def load
+    def load drop_and_create: false
       mysql = `which mysql`.strip
       raise RuntimeError, "Cannot find mysql." if mysql.blank?
       pipe = file_path =~ /\.gz$/ ? "zcat" : "cat"
-      sh "#{pipe} #{file_path} | #{mysql} #{mysql_options}"
+      prepend_db_drop_and_create = drop_and_create ? "(echo -n '#{<<~SQL}' && cat)" : "cat"
+        DROP DATABASE IF EXISTS #{database};
+        CREATE DATABASE #{database};
+        USE #{database};
+      SQL
+      sh "#{pipe} #{file_path} | #{prepend_db_drop_and_create} | #{mysql} #{mysql_options}"
     end
 
     private
