@@ -12,6 +12,10 @@ jobs:
     env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
+      - name: Set up MySQL
+        run: |
+          sudo /etc/init.d/mysql start
+          sudo mysql -uroot -proot -e"ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
         with:
