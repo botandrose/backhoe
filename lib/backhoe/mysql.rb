@@ -1,7 +1,9 @@
-require "backhoe/base"
+require "rake"
 
 module Backhoe
-  class Mysql2 < Base
+  class Mysql < Struct.new(:config, :file_path)
+    include Rake::DSL
+
     def dump skip_tables: []
       mysqldump = `which mysqldump`.strip
       raise RuntimeError, "Cannot find mysqldump." if mysqldump.blank?
@@ -30,6 +32,10 @@ module Backhoe
       options += " -h #{config["host"]}"      if config["host"]
       options += " -S #{config["socket"]}"    if config["socket"]
       options += " '#{config["database"]}'"
+    end
+
+    def database
+      config["database"]
     end
   end
 
@@ -91,6 +97,6 @@ module Backhoe
       end
     end
   end
-  Mysql2.prepend MysqlSkipColumns
+  Mysql.prepend MysqlSkipColumns
 end
 

@@ -7,7 +7,7 @@ RSpec.describe Backhoe do
 
     before do
       stub_const "Rails", double(env: "test")
-      stub_const "Backhoe::Mysql2", adapter
+      stub_const "Backhoe::Mysql", adapter
       ActiveRecord::Base.configurations = YAML.load_file("spec/support/database.yml")
     end
 

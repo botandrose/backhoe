@@ -1,4 +1,5 @@
 require "backhoe/version"
+require "backhoe/mysql"
 require "active_record"
 
 module Backhoe
@@ -6,11 +7,11 @@ module Backhoe
     
   class << self
     def dump file_path: Backhoe.file_path, **options
-      autodetect_adapter.new(database_config, file_path).dump **options
+      Mysql.new(database_config, file_path).dump **options
     end
 
     def load file_path: Backhoe.file_path
-      autodetect_adapter.new(database_config, file_path).load
+      Mysql.new(database_config, file_path).load
     end
 
     def backup s3_path
@@ -22,12 +23,6 @@ module Backhoe
     end
 
     private
-
-    def autodetect_adapter
-      adapter = database_config["adapter"]
-      require "backhoe/#{adapter}"
-      const_get(adapter.camelize)
-    end
 
     def database_config
       configs = ActiveRecord::Base.configurations

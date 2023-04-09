@@ -1,9 +1,9 @@
-require "backhoe/mysql2"
+require "backhoe/mysql"
 require "support/database"
 require "yaml"
 require "tempfile"
 
-RSpec.describe Backhoe::Mysql2 do
+RSpec.describe Backhoe::Mysql do
   let(:config) { YAML.load_file("spec/support/database.yml")["test"] }
   let(:database) { Database.new(config) }
   let(:file_path) { Tempfile.new.path }
