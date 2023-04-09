@@ -13,10 +13,8 @@ RSpec.describe Backhoe::Mysql do
 
   let(:options) {
     case ActiveRecord.version.approximate_recommendation
-    when "~> 5.1" then 'force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8"'
-    when "~> 5.2" then 'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade'
-    when "~> 6.0" then 'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade'
-    else 'charset: "utf8mb4", force: :cascade'
+    when "~> 6.0" then 'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade'
+    else 'charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade'
     end
   }
 
