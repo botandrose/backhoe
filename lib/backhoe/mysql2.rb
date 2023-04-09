@@ -1,7 +1,7 @@
 require "backhoe/base"
 
 module Backhoe
-  class Mysql < Base
+  class Mysql2 < Base
     def dump skip_tables: []
       mysqldump = `which mysqldump`.strip
       raise RuntimeError, "Cannot find mysqldump." if mysqldump.blank?
@@ -89,8 +89,6 @@ module Backhoe
       end
     end
   end
-  Mysql.prepend MysqlSkipColumns
-
-  Mysql2 = Mysql
+  Mysql2.prepend MysqlSkipColumns
 end
 

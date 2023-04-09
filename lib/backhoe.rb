@@ -1,7 +1,4 @@
 require "backhoe/version"
-require "backhoe/mysql"
-require "backhoe/postgresql"
-require "backhoe/sqlite"
 require "active_record"
 
 module Backhoe
@@ -19,7 +16,9 @@ module Backhoe
     private
 
     def autodetect_adapter
-      const_get(database_config["adapter"].camelize)
+      adapter = database_config["adapter"]
+      require "backhoe/#{adapter}"
+      const_get(adapter.camelize)
     end
 
     def database_config
