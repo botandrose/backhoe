@@ -1,7 +1,7 @@
 module Backhoe
   class Backup < Struct.new(:s3_path, :access_key, :secret_key)
     def call
-      Backhoe.dump file_path: path
+      Backhoe.dump path
       Kernel.system "#{creds} aws s3 mv #{path} s3://#{s3_path}/#{filename}".strip
     end
 
