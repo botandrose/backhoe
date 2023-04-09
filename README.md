@@ -7,13 +7,13 @@ Dump and load current ActiveRecord database to and from a file.
 
 ```ruby
 # Dump
-Backhoe.dump # dumps db to db/data.sql
-Backhoe.dump file_path: "/tmp/database.sql" # => dumps db to /tmp/database.sql
+Backhoe.dump # dumps db to db/data.sql.gz
+Backhoe.dump "/tmp/database.sql" # => dumps db to /tmp/database.sql
 Backhoe.dump skip_tables: [:comments], skip_columns: { users: [:password] } # can skip whole tables or just specific columns
 
 # Load
-Backhoe.load # loads db from db/data.sql
-Backhoe.load file_path: "/tmp/database.sql" # => loads db from /tmp/database.sql
+Backhoe.load # loads db from db/data.sql.gz
+Backhoe.load "/tmp/database.sql" # => loads db from /tmp/database.sql
 Backhoe.load drop_and_create: true # injects DROP and CREATE statements into the SQL invocation
 
 # Backup db to S3

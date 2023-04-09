@@ -9,7 +9,7 @@ RSpec.describe Backhoe do
     end
 
     it "works" do
-      Backhoe.dump file_path: Tempfile.new.path
+      Backhoe.dump Tempfile.new.path
     end
   end
 
@@ -20,7 +20,7 @@ RSpec.describe Backhoe do
     end
 
     it "works" do
-      Backhoe.load file_path: "spec/support/example.sql", drop_and_create: true
+      Backhoe.load "spec/support/example.sql", drop_and_create: true
     end
   end
 
