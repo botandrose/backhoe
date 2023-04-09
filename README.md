@@ -6,9 +6,16 @@ Dump and load current ActiveRecord database to and from a file.
 ## Usage
 
 ```ruby
-# Dump and load db
-Backhoe.dump # => dumps db to db/data.sql
-Backhoe.load # => loads db from db/data.sql
+# Dump
+Backhoe.dump # dumps db to db/data.sql
+Backhoe.dump file_path: "/tmp/database.sql" # => dumps db to /tmp/database.sql
+
+# Load
+Backhoe.load # loads db from db/data.sql
+Backhoe.load file_path: "/tmp/database.sql" # => loads db from /tmp/database.sql
+
+# Backup db to S3
+Backhoe.backup "bucket-name/folder" # => dumps db to e.g. s3://bucket-name/folder/2023-04-09T16:41:26Z.sql.gz via AWS CLI, assuming that credentials are already configured.
 ```
 
 ## Development
