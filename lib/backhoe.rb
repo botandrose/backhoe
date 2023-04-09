@@ -1,6 +1,7 @@
 require "backhoe/version"
 require "backhoe/dump"
 require "backhoe/load"
+require "backhoe/backup"
 require "backhoe/database"
 require "active_record"
 
@@ -17,16 +18,7 @@ module Backhoe
     end
 
     def backup s3_path, access_key: nil, secret_key: nil
-      require "time"
-      filename = "#{Time.now.utc.iso8601}.sql.gz"
-      path = "/tmp/#{filename}"
-      dump file_path: path
-
-      command = "aws s3 mv #{path} s3://#{s3_path}/#{filename}"
-      if access_key && secret_key
-        command = "AWS_ACCESS_KEY_ID=#{access_key} AWS_SECRET_ACCESS_KEY=#{secret_key} #{command}"
-      end
-      Kernel.system command
+      Backup.new(s3_path, access_key, secret_key).call
     end
   end
 end
