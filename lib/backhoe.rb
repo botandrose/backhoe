@@ -15,7 +15,7 @@ module Backhoe
       Load.new(Database.new, file_path, drop_and_create).call
     end
 
-    def backup s3_path, access_key: nil, secret_key: nil
+    def backup s3_path, access_key:, secret_key:
       Backup.new(s3_path, access_key, secret_key).call
     end
   end
