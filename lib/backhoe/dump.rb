@@ -11,7 +11,11 @@ module Backhoe
     end
 
     def call
+      if skip_tables.any?
+        raise NotImplementedError if database.postgresql?
+      end
       if skip_columns.any?
+        raise NotImplementedError if database.postgresql?
         SanitizedDatabase.new(skip_columns, file_path).dump do |tables|
           self.skip_tables += tables
           dump
@@ -24,7 +28,13 @@ module Backhoe
     private
 
     def dump
-      sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options} #{database.to_mysql_options} #{database.name} | #{pipe} > #{file_path}"
+      if database.mysql?
+        sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options} #{database.to_mysql_options} #{database.name} | #{pipe} > #{file_path}"
+      elsif database.postgresql?
+        sh "#{pg_dump} --column-inserts #{database.name} | #{pipe} > #{file_path}"
+      else
+        raise "don't know how to dump #{database.adapter}"
+      end
     end
 
     private
@@ -32,6 +42,12 @@ module Backhoe
     def mysqldump
       cmd = `which mysqldump`.strip
       raise RuntimeError, "Cannot find mysqldump." if cmd.blank?
+      cmd
+    end
+
+    def pg_dump
+      cmd = `which pg_dump`.strip
+      raise RuntimeError, "Cannot find pg_dump." if cmd.blank?
       cmd
     end
 

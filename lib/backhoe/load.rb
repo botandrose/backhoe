@@ -5,18 +5,34 @@ module Backhoe
     include Rake::DSL
 
     def call
-      sh command
+      case database.adapter
+      when "mysql2"
+        sh mysql_command
+      when "postgresql"
+        sh psql_command
+      else
+        raise "don't know how to load #{database.adapter}"
+      end
     end
 
     private
 
-    def command
+    def mysql_command
       cmd = "#{cat} #{file_path} | "
       cmd += if drop_and_create
         "#{pipe} | #{mysql} #{database.to_mysql_options}"
       else
         "#{mysql} #{database.to_mysql_options} #{database.name}"
       end
+    end
+
+    def psql_command
+      cmd = "#{cat} #{file_path} | "
+      if drop_and_create
+        cmd = "dropdb -f #{database.name}; createdb #{database.name}; #{cmd}"
+      end
+      cmd += "#{psql} -P pager=off -q -d#{database.name}"
+      cmd
     end
 
     def cat
@@ -38,6 +54,12 @@ module Backhoe
     def mysql
       cmd = `which mysql`.strip
       raise RuntimeError, "Cannot find mysql." if cmd.blank?
+      cmd
+    end
+
+    def psql
+      cmd = `which psql`.strip
+      raise RuntimeError, "Cannot find psql." if cmd.blank?
       cmd
     end
   end

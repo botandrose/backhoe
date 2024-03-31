@@ -26,6 +26,18 @@ module Backhoe
       config["database"]
     end
 
+    def adapter
+      config["adapter"]
+    end
+
+    def postgresql?
+      config["adapter"] == "postgresql"
+    end
+
+    def mysql?
+      %w[mysql2 trilogy].include?(config["adapter"])
+    end
+
     private
 
     def load_config

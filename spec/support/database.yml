@@ -1,6 +1,14 @@
 test:
+  host: localhost
   adapter: mysql2
   database: backhoe_test
   username: root
+  password:
+
+postgresql:
+  host: localhost
+  adapter: postgresql
+  database: backhoe_test
+  username:
   password:
 
