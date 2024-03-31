@@ -4,3 +4,9 @@ test:
   username: root
   password:
 
+postgresql:
+  adapter: postgresql
+  database: backhoe_test
+  username:
+  password:
+

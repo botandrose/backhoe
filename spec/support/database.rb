@@ -27,13 +27,21 @@ class Database < Struct.new(:config)
   end
 
   def destroy_db
-    ActiveRecord::Base.connection.drop_database(config["database"])
+    if postgresql?
+      system "dropdb -f #{name}"
+    else
+      ActiveRecord::Base.connection.drop_database(config["database"])
+    end
   end
 
   def load_file path
     create_db
-    File.read(path).split(/;$/).each do |line|
-      execute line
+    if postgresql?
+      execute File.read(path)
+    else
+      File.read(path).split(/;$/).each do |line|
+        execute line
+      end
     end
   end
 
@@ -51,6 +59,14 @@ class Database < Struct.new(:config)
   def schema_dumper
     ActiveRecord::Base.connection.reconnect!
     ActiveRecord::Base.connection.create_schema_dumper({})
+  end
+
+  def postgresql?
+    config["adapter"] == "postgresql"
+  end
+
+  def name
+    config["database"]
   end
 end
 
