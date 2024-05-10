@@ -6,7 +6,7 @@ module Backhoe
 
     def call
       case database.adapter
-      when "mysql2"
+      when "mysql2", "trilogy"
         sh mysql_command
       when "postgresql"
         sh psql_command
