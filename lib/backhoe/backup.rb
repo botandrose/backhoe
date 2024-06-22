@@ -11,7 +11,7 @@ module Backhoe
 
       uri = URI("https://s3-us-west-2.amazonaws.com/#{s3_path}/#{filename}")
 
-      req = Net::HTTP::Put.new(uri, {
+      request = Net::HTTP::Put.new(uri, {
         "Content-Length": File.size(path).to_s,
         "Content-Type": content_type,
         "Date": date,
@@ -19,8 +19,12 @@ module Backhoe
         "x-amz-storage-class": "STANDARD",
         "x-amz-acl": "private",
       })
-      req.body_stream = File.open(path)
-      Net::HTTP.start(uri.hostname) { |http| http.request(req) }
+      request.body_stream = File.open(path)
+
+      Net::HTTP.start(uri.hostname) do |http|
+        response = http.request(request)
+        response.value # raises if not success
+      end
     end
 
     private
