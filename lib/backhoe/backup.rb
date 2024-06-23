@@ -9,7 +9,7 @@ module Backhoe
 
       Backhoe.dump path
 
-      uri = URI("https://s3-us-west-2.amazonaws.com/#{s3_path}/#{filename}")
+      uri = URI("https://s3.amazonaws.com/#{s3_path}/#{filename}")
 
       request = Net::HTTP::Put.new(uri, {
         "Content-Length": File.size(path).to_s,
