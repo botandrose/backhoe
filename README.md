@@ -15,9 +15,6 @@ Backhoe.dump "data.sql", skip_tables: [:comments], skip_columns: { users: [:pass
 Backhoe.load "data.sql" # loads db from db/data.sql
 Backhoe.load "data.sql.gz" # => can also load a gzipped sql file
 Backhoe.load "data.sql", drop_and_create: true # injects DROP and CREATE statements into the SQL invocation
-
-# Backup db to S3
-Backhoe.backup "bucket-name/folder", access_key: "abc123", secret_key: "def456" # => must specify AWS creds
 ```
 
 ## Development
