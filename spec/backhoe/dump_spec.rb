@@ -1,6 +1,7 @@
 require "backhoe/dump"
 require "backhoe/database"
 require "support/database"
+require "support/fake_server"
 require "yaml"
 require "tempfile"
 
@@ -9,7 +10,7 @@ RSpec.describe Backhoe::Dump do
   let(:database) { Database.new(config) }
 
   subject do
-    described_class.new(Backhoe::Database.new(config), file_path)
+    described_class.new(Backhoe::Database.new(config), path)
   end
 
   let(:options) {
@@ -19,8 +20,22 @@ RSpec.describe Backhoe::Dump do
     end
   }
 
+  let(:schema) { <<-SCHEMA }
+  create_table "posts", #{options} do |t|
+    t.integer "user_id"
+    t.text "body"
+  end
+
+  create_table "users", #{options} do |t|
+    t.integer "name"
+    t.string "email"
+    t.string "passhash"
+  end
+
+SCHEMA
+
   describe "#call" do
-    let(:file_path) { Tempfile.new.path }
+    let(:path) { Tempfile.new.path }
 
     around do |example|
       database.create_db
@@ -30,45 +45,66 @@ RSpec.describe Backhoe::Dump do
     end
 
     describe "by default" do
-      it "dumps the current database to the supplied file_path" do
+      it "dumps the current database to the supplied path" do
         subject.call
-        database.load_file file_path
-        expect(database.schema).to eq <<-SCHEMA
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
-
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-
-        SCHEMA
+        database.load_file path
+        expect(database.schema).to eq schema
       end
     end
 
-    describe "with file_path ending in .gz" do
-      let(:file_path) { Tempfile.new(["db",".sql.gz"]).path }
+    describe "with path ending in .gz" do
+      let(:path) { Tempfile.new(["db",".sql.gz"]).path }
 
-      it "dumps and gzips the current database to the supplied file_path" do
+      it "dumps and gzips the current database to the supplied path" do
         subject.call
-        system "gunzip #{file_path}"
-        database.load_file file_path.sub(".gz","")
-        expect(database.schema).to eq <<-SCHEMA
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
+        system "gunzip #{path}"
+        database.load_file path.sub(".gz","")
+        expect(database.schema).to eq schema
+      end
+    end
 
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
+    context "remote" do
+      let(:server) { FakeServer.new("tmp/fake_server/files") }
 
-        SCHEMA
+      around do |example|
+        server.reset
+        server.start
+        example.run
+        server.stop
+      end
+
+      describe "with path starting with http(s)://" do
+        let(:path) { "http://localhost:#{server.port}/post" }
+
+        it "dumps the current database and PUTs it to the supplied path" do
+          subject.call
+          database.load_file File.join(server.path, "/post")
+          expect(database.schema).to eq schema
+        end
+      end
+
+      describe "with path starting with http(s):// and ending with .gz" do
+        let(:path) { "http://localhost:#{server.port}/database.sql.gz" }
+
+        it "dumps and gzips the current database and PUTs it to the supplied path" do
+          subject.call
+          uploaded_file_path = File.join(server.path, "/database.sql.gz")
+          system "gunzip #{uploaded_file_path}"
+          database.load_file uploaded_file_path.sub(".gz","")
+          expect(database.schema).to eq schema
+        end
+      end
+
+      describe "with path starting with http(s):// and ending with .gz but with a query string" do
+        let(:path) { "http://localhost:#{server.port}/database.sql.gz?query-string=true" }
+
+        it "dumps and gzips the current database and PUTs it to the supplied path" do
+          subject.call
+          uploaded_file_path = File.join(server.path, "/database.sql.gz")
+          system "gunzip #{uploaded_file_path}"
+          database.load_file uploaded_file_path.sub(".gz","")
+          expect(database.schema).to eq schema
+        end
       end
     end
 
@@ -76,7 +112,7 @@ RSpec.describe Backhoe::Dump do
       it "skips the supplied tables from the dump" do
         subject.skip_tables = [:posts]
         subject.call
-        database.load_file file_path
+        database.load_file path
         expect(database.schema).to eq <<-SCHEMA
   create_table "users", #{options} do |t|
     t.integer "name"
@@ -92,7 +128,7 @@ RSpec.describe Backhoe::Dump do
       it "skips the supplied columns from the dump" do
         subject.skip_columns = { users: [:passhash] }
         subject.call
-        database.load_file file_path
+        database.load_file path
         expect(database.schema).to eq <<-SCHEMA
   create_table "posts", #{options} do |t|
     t.integer "user_id"
@@ -111,7 +147,7 @@ RSpec.describe Backhoe::Dump do
         subject.skip_tables = [:posts]
         subject.skip_columns = { users: [:passhash] }
         subject.call
-        database.load_file file_path
+        database.load_file path
         expect(database.schema).to eq <<-SCHEMA
   create_table "users", #{options} do |t|
     t.integer "name"

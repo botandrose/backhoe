@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pg"
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "timecop"
+  spec.add_development_dependency "webrick"
 end

@@ -1,7 +1,7 @@
 require "rake"
 
 module Backhoe
-  class Load < Struct.new(:database, :file_path, :drop_and_create)
+  class Load < Struct.new(:database, :path, :drop_and_create)
     include Rake::DSL
 
     def call
@@ -18,7 +18,7 @@ module Backhoe
     private
 
     def mysql_command
-      cmd = "#{cat} #{file_path} | "
+      cmd = "#{cat} #{path} | "
       cmd += if drop_and_create
         "#{pipe} | #{mysql} #{database.to_mysql_options}"
       else
@@ -27,7 +27,7 @@ module Backhoe
     end
 
     def psql_command
-      cmd = "#{cat} #{file_path} | "
+      cmd = "#{cat} #{path} | "
       if drop_and_create
         cmd = "dropdb -f #{database.name}; createdb #{database.name}; #{cmd}"
       end
@@ -36,7 +36,7 @@ module Backhoe
     end
 
     def cat
-      file_path =~ /\.gz$/ ? "zcat" : "cat"
+      path =~ /\.gz$/ ? "zcat" : "cat"
     end
 
     def pipe

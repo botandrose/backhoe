@@ -1,7 +1,7 @@
 require "rake"
 
 module Backhoe
-  class Dump < Struct.new(:database, :file_path, :skip_tables, :skip_columns)
+  class Dump < Struct.new(:database, :path, :skip_tables, :skip_columns)
     include Rake::DSL
 
     def initialize *args
@@ -16,7 +16,7 @@ module Backhoe
       end
       if skip_columns.any?
         raise NotImplementedError if database.postgresql?
-        SanitizedDatabase.new(skip_columns, file_path).dump do |tables|
+        SanitizedDatabase.new(skip_columns, path).dump do |tables|
           self.skip_tables += tables
           dump
         end
@@ -29,15 +29,23 @@ module Backhoe
 
     def dump
       if database.mysql?
-        sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options} #{database.to_mysql_options} #{database.name} | #{pipe} > #{file_path}"
+        sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options} #{database.to_mysql_options} #{database.name} | #{pipe} #{target}"
       elsif database.postgresql?
-        sh "#{pg_dump} --column-inserts #{database.name} | #{pipe} > #{file_path}"
+        sh "#{pg_dump} --column-inserts #{database.name} | #{pipe} #{target}"
       else
         raise "don't know how to dump #{database.adapter}"
       end
     end
 
     private
+
+    def target
+      if path =~ /^https?:\/\//
+        "| curl -X PUT -H 'Content-Type: application/octet-stream' --data-binary @- '#{path}'"
+      else
+        "> #{path}"
+      end
+    end
 
     def mysqldump
       cmd = `which mysqldump`.strip
@@ -52,7 +60,7 @@ module Backhoe
     end
 
     def pipe
-      file_path =~ /\.gz$/ ? "gzip -9f" : "cat"
+      path =~ /\.gz\b/ ? "gzip -9f" : "cat"
     end
 
     def skip_table_options
@@ -61,13 +69,13 @@ module Backhoe
       end.join(" ")
     end
 
-    class SanitizedDatabase < Struct.new(:config, :file_path)
+    class SanitizedDatabase < Struct.new(:config, :path)
       def dump
         with_sanitized_tables do
           yield skip_tables
         end
         skip_tables.each do |table|
-          File.write file_path, "RENAME TABLE `sanitized_#{table}` TO `#{table}`;", mode: "a"
+          File.write path, "RENAME TABLE `sanitized_#{table}` TO `#{table}`;", mode: "a"
         end
       end
 
