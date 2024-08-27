@@ -35,7 +35,7 @@ RSpec.describe Backhoe::Load do
 
       it "loads the supplied file_path into the current database" do
         subject.call
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
     t.integer "user_id"
     t.text "body"
@@ -46,7 +46,6 @@ RSpec.describe Backhoe::Load do
     t.string "email"
     t.string "passhash"
   end
-
         SCHEMA
       end
     end
@@ -56,7 +55,7 @@ RSpec.describe Backhoe::Load do
 
       it "dumps and gzips the current database to the supplied file_path" do
         subject.call
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
@@ -67,7 +66,6 @@ RSpec.describe Backhoe::Load do
     t.string "email"
     t.string "passhash"
   end
-
         SCHEMA
       end
     end
@@ -85,7 +83,7 @@ RSpec.describe Backhoe::Load do
 
         subject.drop_and_create = true
         subject.call
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
@@ -96,7 +94,6 @@ RSpec.describe Backhoe::Load do
     t.string "email"
     t.string "passhash"
   end
-
         SCHEMA
       end
     end

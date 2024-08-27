@@ -20,7 +20,7 @@ RSpec.describe Backhoe::Dump do
     end
   }
 
-  let(:schema) { <<-SCHEMA }
+  let(:schema) { <<-SCHEMA.strip }
   create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
@@ -31,7 +31,6 @@ RSpec.describe Backhoe::Dump do
     t.string "email"
     t.string "passhash"
   end
-
 SCHEMA
 
   describe "#call" do
@@ -113,13 +112,12 @@ SCHEMA
         subject.skip_tables = [:posts]
         subject.call
         database.load_file path
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
     t.string "passhash"
   end
-
         SCHEMA
       end
     end
@@ -129,7 +127,7 @@ SCHEMA
         subject.skip_columns = { users: [:passhash] }
         subject.call
         database.load_file path
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
@@ -139,7 +137,6 @@ SCHEMA
     t.integer "name"
     t.string "email"
   end
-
         SCHEMA
       end
 
@@ -148,12 +145,11 @@ SCHEMA
         subject.skip_columns = { users: [:passhash] }
         subject.call
         database.load_file path
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
   end
-
         SCHEMA
       end
     end

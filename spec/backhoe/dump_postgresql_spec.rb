@@ -37,7 +37,7 @@ RSpec.describe Backhoe::Dump do
       it "dumps the current database to the supplied file_path" do
         subject.call
         database.load_file file_path
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
@@ -48,7 +48,6 @@ RSpec.describe Backhoe::Dump do
     t.string "email"
     t.string "passhash"
   end
-
         SCHEMA
       end
     end
@@ -60,7 +59,7 @@ RSpec.describe Backhoe::Dump do
         subject.call
         system "gunzip #{file_path}"
         database.load_file file_path.sub(".gz","")
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
@@ -71,7 +70,6 @@ RSpec.describe Backhoe::Dump do
     t.string "email"
     t.string "passhash"
   end
-
         SCHEMA
       end
     end
@@ -81,13 +79,12 @@ RSpec.describe Backhoe::Dump do
         subject.skip_tables = [:posts]
         subject.call
         database.load_file file_path
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
     t.string "passhash"
   end
-
         SCHEMA
       end
     end
@@ -97,7 +94,7 @@ RSpec.describe Backhoe::Dump do
         subject.skip_columns = { users: [:passhash] }
         subject.call
         database.load_file file_path
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "posts", #{options} do |t|
     t.integer "user_id"
     t.text "body"
@@ -107,7 +104,6 @@ RSpec.describe Backhoe::Dump do
     t.integer "name"
     t.string "email"
   end
-
         SCHEMA
       end
 
@@ -116,12 +112,11 @@ RSpec.describe Backhoe::Dump do
         subject.skip_columns = { users: [:passhash] }
         subject.call
         database.load_file file_path
-        expect(database.schema).to eq <<-SCHEMA
+        expect(database.schema).to eq <<-SCHEMA.strip
   create_table "users", #{options} do |t|
     t.integer "name"
     t.string "email"
   end
-
         SCHEMA
       end
     end

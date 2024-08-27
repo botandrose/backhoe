@@ -53,7 +53,7 @@ class Database < Struct.new(:config)
     schema = StringIO.new
     schema_dumper.send(:tables, schema)
     schema.rewind
-    schema.read
+    schema.read.strip
   end
 
   def schema_dumper
