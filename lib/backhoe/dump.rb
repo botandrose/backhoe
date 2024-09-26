@@ -29,12 +29,20 @@ module Backhoe
 
     def dump
       if database.mysql?
-        sh "set -o pipefail && #{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options} #{database.to_mysql_options} #{database.name} | #{pipe} #{target}"
+        bash_sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options} #{database.to_mysql_options} #{database.name} | #{pipe} #{target}"
       elsif database.postgresql?
-        sh "set -o pipefail && #{pg_dump} --column-inserts #{database.name} | #{pipe} #{target}"
+        bash_sh "#{pg_dump} --column-inserts #{database.name} | #{pipe} #{target}"
       else
         raise "don't know how to dump #{database.adapter}"
       end
+    end
+
+    def bash_sh(command)
+      sh <<~EOS
+        /bin/bash -xeu <<'BASH'
+        set -o pipefail && #{command}
+        BASH
+      EOS
     end
 
     private
