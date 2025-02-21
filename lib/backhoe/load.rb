@@ -5,11 +5,12 @@ module Backhoe
     include Rake::DSL
 
     def call
-      case database.adapter
-      when "mysql2", "trilogy"
+      if database.mysql?
         sh mysql_command
-      when "postgresql"
+      elsif database.postgresql?
         sh psql_command
+      elsif database.sqlite?
+        sh sqlite_command
       else
         raise "don't know how to load #{database.adapter}"
       end
@@ -33,6 +34,10 @@ module Backhoe
       end
       cmd += "#{psql} -P pager=off -q -d#{database.name}"
       cmd
+    end
+
+    def sqlite_command
+      "#{cat} #{path} > #{database.path}"
     end
 
     def cat

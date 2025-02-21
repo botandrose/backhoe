@@ -38,6 +38,15 @@ module Backhoe
       %w[mysql2 trilogy].include?(config["adapter"])
     end
 
+    def sqlite?
+      config["adapter"] == "sqlite3"
+    end
+
+    def path
+      raise unless sqlite?
+      config["database"]
+    end
+
     private
 
     def load_config

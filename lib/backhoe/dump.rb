@@ -32,6 +32,8 @@ module Backhoe
         bash_sh "#{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options} #{database.to_mysql_options} #{database.name} | #{pipe} #{target}"
       elsif database.postgresql?
         bash_sh "#{pg_dump} --column-inserts #{database.name} | #{pipe} #{target}"
+      elsif database.sqlite?
+        bash_sh "cat #{database.path} | #{pipe} #{target}"
       else
         raise "don't know how to dump #{database.adapter}"
       end
