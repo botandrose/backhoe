@@ -10,3 +10,7 @@ postgresql:
   username:
   password:
 
+sqlite:
+  adapter: sqlite3
+  database: tmp/backhoe_test.sqlite3
+

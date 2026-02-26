@@ -1,8 +1,16 @@
+require "fileutils"
+
 class Database < Struct.new(:config)
   def create_db
-    ActiveRecord::Base.establish_connection(config.merge(database: nil))
-    ActiveRecord::Base.connection.recreate_database(config["database"])
-    ActiveRecord::Base.establish_connection(config)
+    if sqlite?
+      FileUtils.mkdir_p(File.dirname(config["database"]))
+      FileUtils.rm_f(config["database"])
+      ActiveRecord::Base.establish_connection(config)
+    else
+      ActiveRecord::Base.establish_connection(config.merge(database: nil))
+      ActiveRecord::Base.connection.recreate_database(config["database"])
+      ActiveRecord::Base.establish_connection(config)
+    end
   end
 
   def load_schema &block
@@ -27,7 +35,9 @@ class Database < Struct.new(:config)
   end
 
   def destroy_db
-    if postgresql?
+    if sqlite?
+      FileUtils.rm_f(config["database"])
+    elsif postgresql?
       system "dropdb -f #{name}"
     else
       ActiveRecord::Base.connection.drop_database(config["database"])
@@ -35,12 +45,17 @@ class Database < Struct.new(:config)
   end
 
   def load_file path
-    create_db
-    if postgresql?
-      execute File.read(path)
+    if sqlite?
+      FileUtils.cp(path, config["database"])
+      ActiveRecord::Base.connection.reconnect!
     else
-      File.read(path).split(/;$/).each do |line|
-        execute line
+      create_db
+      if postgresql?
+        execute File.read(path)
+      else
+        File.read(path).split(/;$/).each do |line|
+          execute line
+        end
       end
     end
   end
@@ -63,6 +78,10 @@ class Database < Struct.new(:config)
 
   def postgresql?
     config["adapter"] == "postgresql"
+  end
+
+  def sqlite?
+    config["adapter"] == "sqlite3"
   end
 
   def name
