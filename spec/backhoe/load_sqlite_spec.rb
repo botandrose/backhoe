@@ -37,23 +37,19 @@ RSpec.describe Backhoe::Load do
       FileUtils.rm_f(fixture_gz_path)
     end
 
+    def reference_schema
+      database.create_db
+      database.load_schema
+      database.schema
+    end
+
     describe "with a plain file_path" do
       let(:file_path) { fixture_path }
 
       it "loads the supplied file_path into the current database" do
         subject.call
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", force: :cascade do |t|
-    t.text "body"
-    t.integer "user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "email"
-    t.integer "name"
-    t.string "passhash"
-  end
-        SCHEMA
+        actual = database.schema
+        expect(actual).to eq reference_schema
       end
     end
 
@@ -62,18 +58,8 @@ RSpec.describe Backhoe::Load do
 
       it "loads and decompresses the supplied file_path into the current database" do
         subject.call
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", force: :cascade do |t|
-    t.text "body"
-    t.integer "user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "email"
-    t.integer "name"
-    t.string "passhash"
-  end
-        SCHEMA
+        actual = database.schema
+        expect(actual).to eq reference_schema
       end
     end
 
@@ -91,18 +77,8 @@ RSpec.describe Backhoe::Load do
         ActiveRecord::Base.connection.disconnect!
         subject.drop_and_create = true
         subject.call
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", force: :cascade do |t|
-    t.text "body"
-    t.integer "user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "email"
-    t.integer "name"
-    t.string "passhash"
-  end
-        SCHEMA
+        actual = database.schema
+        expect(actual).to eq reference_schema
       end
     end
   end

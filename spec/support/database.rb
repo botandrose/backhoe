@@ -8,6 +8,11 @@ class Database < Struct.new(:config)
       ActiveRecord::Base.establish_connection(config)
     else
       ActiveRecord::Base.establish_connection(config.merge(database: nil))
+      if postgresql?
+        ActiveRecord::Base.connection.execute(
+          "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '#{config["database"]}' AND pid <> pg_backend_pid()"
+        )
+      end
       ActiveRecord::Base.connection.recreate_database(config["database"])
       ActiveRecord::Base.establish_connection(config)
     end
@@ -51,7 +56,7 @@ class Database < Struct.new(:config)
     else
       create_db
       if postgresql?
-        execute File.read(path)
+        system "cat #{path} | psql -P pager=off -q -d#{name}"
       else
         File.read(path).split(/;$/).each do |line|
           execute line

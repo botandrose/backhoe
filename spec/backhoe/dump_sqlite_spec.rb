@@ -14,6 +14,7 @@ RSpec.describe Backhoe::Dump do
 
   describe "#call" do
     let(:file_path) { Tempfile.new.path }
+    let(:schema) { database.schema }
 
     around do |example|
       database.create_db
@@ -26,18 +27,7 @@ RSpec.describe Backhoe::Dump do
       it "dumps the current database to the supplied file_path" do
         subject.call
         database.load_file file_path
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", force: :cascade do |t|
-    t.text "body"
-    t.integer "user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "email"
-    t.integer "name"
-    t.string "passhash"
-  end
-        SCHEMA
+        expect(database.schema).to eq schema
       end
     end
 
@@ -48,18 +38,7 @@ RSpec.describe Backhoe::Dump do
         subject.call
         system "gunzip #{file_path}"
         database.load_file file_path.sub(".gz","")
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", force: :cascade do |t|
-    t.text "body"
-    t.integer "user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "email"
-    t.integer "name"
-    t.string "passhash"
-  end
-        SCHEMA
+        expect(database.schema).to eq schema
       end
     end
   end

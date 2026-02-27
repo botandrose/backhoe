@@ -13,28 +13,9 @@ RSpec.describe Backhoe::Dump do
     described_class.new(Backhoe::Database.new(config), path)
   end
 
-  let(:options) {
-    case ActiveRecord.version.approximate_recommendation
-    when "~> 6.0" then 'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade'
-    else 'charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade'
-    end
-  }
-
-  let(:schema) { <<-SCHEMA.strip }
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
-
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-SCHEMA
-
   describe "#call" do
     let(:path) { Tempfile.new.path }
+    let(:schema) { database.schema }
 
     around do |example|
       database.create_db
@@ -112,13 +93,18 @@ SCHEMA
         subject.skip_tables = [:posts]
         subject.call
         database.load_file path
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-        SCHEMA
+        actual = database.schema
+
+        database.create_db
+        database.load_schema do
+          create_table :users do |t|
+            t.integer :name
+            t.string :email
+            t.string :passhash
+          end
+        end
+
+        expect(actual).to eq database.schema
       end
     end
 
@@ -127,17 +113,22 @@ SCHEMA
         subject.skip_columns = { users: [:passhash] }
         subject.call
         database.load_file path
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
+        actual = database.schema
 
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-  end
-        SCHEMA
+        database.create_db
+        database.load_schema do
+          create_table :users do |t|
+            t.integer :name
+            t.string :email
+          end
+
+          create_table :posts do |t|
+            t.integer :user_id
+            t.text :body
+          end
+        end
+
+        expect(actual).to eq database.schema
       end
 
       it "doesn't stomp on :skip_tables option" do
@@ -145,12 +136,17 @@ SCHEMA
         subject.skip_columns = { users: [:passhash] }
         subject.call
         database.load_file path
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-  end
-        SCHEMA
+        actual = database.schema
+
+        database.create_db
+        database.load_schema do
+          create_table :users do |t|
+            t.integer :name
+            t.string :email
+          end
+        end
+
+        expect(actual).to eq database.schema
       end
     end
   end

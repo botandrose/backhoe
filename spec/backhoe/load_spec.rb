@@ -12,13 +12,6 @@ RSpec.describe Backhoe::Load do
     described_class.new(Backhoe::Database.new(config), file_path)
   end
 
-  let(:options) {
-    case ActiveRecord.version.approximate_recommendation
-    when "~> 6.0" then 'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade'
-    else 'charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade'
-    end
-  }
-
   describe "#call" do
     around do |example|
       database.create_db
@@ -26,23 +19,19 @@ RSpec.describe Backhoe::Load do
       database.destroy_db
     end
 
+    def reference_schema
+      database.create_db
+      database.load_schema
+      database.schema
+    end
+
     describe "with file_path ending in .sql" do
       let(:file_path) { "spec/support/example.sql" }
 
       it "loads the supplied file_path into the current database" do
         subject.call
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
-
-  create_table "users", #{options.sub(/utf8\b/, "utf8mb4")} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-        SCHEMA
+        actual = database.schema
+        expect(actual).to eq reference_schema
       end
     end
 
@@ -51,18 +40,8 @@ RSpec.describe Backhoe::Load do
 
       it "dumps and gzips the current database to the supplied file_path" do
         subject.call
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
-
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-        SCHEMA
+        actual = database.schema
+        expect(actual).to eq reference_schema
       end
     end
 
@@ -79,18 +58,8 @@ RSpec.describe Backhoe::Load do
 
         subject.drop_and_create = true
         subject.call
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
-
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-        SCHEMA
+        actual = database.schema
+        expect(actual).to eq reference_schema
       end
     end
   end

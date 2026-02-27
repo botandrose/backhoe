@@ -2,8 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.11 (Ubuntu 14.11-0ubuntu0.22.04.1)
--- Dumped by pg_dump version 14.11 (Ubuntu 14.11-0ubuntu0.22.04.1)
+
+-- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
+-- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,7 +22,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: micah
+-- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.ar_internal_metadata (
@@ -32,10 +33,8 @@ CREATE TABLE public.ar_internal_metadata (
 );
 
 
-ALTER TABLE public.ar_internal_metadata OWNER TO micah;
-
 --
--- Name: posts; Type: TABLE; Schema: public; Owner: micah
+-- Name: posts; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.posts (
@@ -45,10 +44,8 @@ CREATE TABLE public.posts (
 );
 
 
-ALTER TABLE public.posts OWNER TO micah;
-
 --
--- Name: posts_id_seq; Type: SEQUENCE; Schema: public; Owner: micah
+-- Name: posts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.posts_id_seq
@@ -59,17 +56,15 @@ CREATE SEQUENCE public.posts_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.posts_id_seq OWNER TO micah;
-
 --
--- Name: posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: micah
+-- Name: posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
 
 
 --
--- Name: schema_migrations; Type: TABLE; Schema: public; Owner: micah
+-- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.schema_migrations (
@@ -77,10 +72,8 @@ CREATE TABLE public.schema_migrations (
 );
 
 
-ALTER TABLE public.schema_migrations OWNER TO micah;
-
 --
--- Name: users; Type: TABLE; Schema: public; Owner: micah
+-- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.users (
@@ -91,10 +84,8 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO micah;
-
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: micah
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.users_id_seq
@@ -105,70 +96,68 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.users_id_seq OWNER TO micah;
-
 --
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: micah
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- Name: posts id; Type: DEFAULT; Schema: public; Owner: micah
+-- Name: posts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: micah
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
 
 
 --
--- Data for Name: ar_internal_metadata; Type: TABLE DATA; Schema: public; Owner: micah
+-- Data for Name: ar_internal_metadata; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.ar_internal_metadata (key, value, created_at, updated_at) VALUES ('environment', 'default_env', '2024-03-31 17:39:14.486218', '2024-03-31 17:39:14.486225');
-
-
---
--- Data for Name: posts; Type: TABLE DATA; Schema: public; Owner: micah
---
-
+INSERT INTO public.ar_internal_metadata (key, value, created_at, updated_at) VALUES ('environment', 'default_env', '2026-02-27 15:38:33.60972', '2026-02-27 15:38:33.609725');
 
 
 --
--- Data for Name: schema_migrations; Type: TABLE DATA; Schema: public; Owner: micah
+-- Data for Name: posts; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: micah
+-- Data for Name: schema_migrations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- Name: posts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: micah
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Name: posts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.posts_id_seq', 1, false);
 
 
 --
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: micah
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.users_id_seq', 1, false);
 
 
 --
--- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: micah
+-- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ar_internal_metadata
@@ -176,7 +165,7 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
--- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: micah
+-- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.posts
@@ -184,7 +173,7 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: micah
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.schema_migrations
@@ -192,7 +181,7 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: micah
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -202,4 +191,5 @@ ALTER TABLE ONLY public.users
 --
 -- PostgreSQL database dump complete
 --
+
 

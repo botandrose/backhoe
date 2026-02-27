@@ -12,19 +12,9 @@ RSpec.describe Backhoe::Dump do
     described_class.new(Backhoe::Database.new(config), file_path)
   end
 
-  let(:options) {
-    if database.postgresql?
-      'force: :cascade'
-    else
-      case ActiveRecord.version.approximate_recommendation
-      when "~> 6.0" then 'options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade'
-      else 'charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade'
-      end
-    end
-  }
-
   describe "#call" do
     let(:file_path) { Tempfile.new.path }
+    let(:schema) { database.schema }
 
     around do |example|
       database.create_db
@@ -37,18 +27,7 @@ RSpec.describe Backhoe::Dump do
       it "dumps the current database to the supplied file_path" do
         subject.call
         database.load_file file_path
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
-
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-        SCHEMA
+        expect(database.schema).to eq schema
       end
     end
 
@@ -59,18 +38,7 @@ RSpec.describe Backhoe::Dump do
         subject.call
         system "gunzip #{file_path}"
         database.load_file file_path.sub(".gz","")
-        expect(database.schema).to eq <<-SCHEMA.strip
-  create_table "posts", #{options} do |t|
-    t.integer "user_id"
-    t.text "body"
-  end
-
-  create_table "users", #{options} do |t|
-    t.integer "name"
-    t.string "email"
-    t.string "passhash"
-  end
-        SCHEMA
+        expect(database.schema).to eq schema
       end
     end
 
