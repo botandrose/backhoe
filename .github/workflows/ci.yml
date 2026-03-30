@@ -8,7 +8,7 @@ jobs:
         gemfile: [ activerecord_7.2, activerecord_8.0, activerecord_8.1 ]
         ruby: [ 3.3, 3.4, "4.0" ]
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
       POSTGRES_HOST_AUTH_METHOD: trust
