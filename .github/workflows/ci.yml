@@ -5,7 +5,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gemfile: [ activerecord_7.2, activerecord_8.0, activerecord_8.1 ]
+        gemfile: [ activerecord_8.1 ]
         ruby: [ 3.3, 3.4, "4.0" ]
 
     runs-on: ubuntu-24.04
