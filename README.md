@@ -10,7 +10,6 @@ Dump and load current ActiveRecord database to and from a file.
 Backhoe.dump "data.sql" # dumps db to db/data.sql
 Backhoe.dump "data.sql.gz" # => can also dump a gzipped sql file
 Backhoe.dump "data.sql", skip_tables: [:comments], skip_columns: { users: [:password] } # can skip whole tables or just specific columns
-Backhoe.dump "data.sql", scrub_columns: { users: { email: "CONCAT('user', id, '@example.com')", phone: nil } } # or keep columns but overwrite them with SQL expressions (nil for NULL)
 
 # Load
 Backhoe.load "data.sql" # loads db from db/data.sql

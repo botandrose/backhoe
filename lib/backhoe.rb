@@ -6,8 +6,8 @@ require "active_record"
 
 module Backhoe
   class << self
-    def dump path, skip_tables: [], skip_columns: {}, scrub_columns: {}
-      Dump.new(Database.new, path, skip_tables, skip_columns, scrub_columns).call
+    def dump path, skip_tables: [], skip_columns: {}
+      Dump.new(Database.new, path, skip_tables, skip_columns).call
     end
 
     def load path, drop_and_create: false
