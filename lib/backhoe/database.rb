@@ -1,3 +1,5 @@
+require "tempfile"
+
 module Backhoe
   class Database
     def initialize config=load_config
@@ -15,8 +17,9 @@ module Backhoe
     end
 
     def to_mysql_options
-      options =  " -u #{config["username"]}"
-      options += " -p'#{config["password"]}'" if config["password"]
+      options =  ""
+      options += " --defaults-extra-file=#{password_file.path}" if config["password"]
+      options += " -u #{config["username"]}"
       options += " -h #{config["host"]}"      if config["host"]
       options += " -S #{config["socket"]}"    if config["socket"]
       options
@@ -48,6 +51,14 @@ module Backhoe
     end
 
     private
+
+    # A password on the command line is visible to every user on the host and echoed into logs and errors.
+    def password_file
+      @password_file ||= Tempfile.new(["backhoe", ".cnf"]).tap do |file|
+        file.write(%([client]\npassword="#{config["password"].to_s.gsub(/[\\"]/) { "\\#{$&}" }}"\n))
+        file.flush
+      end
+    end
 
     def load_config
       configs = ActiveRecord::Base.configurations

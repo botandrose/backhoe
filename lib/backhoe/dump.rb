@@ -30,7 +30,7 @@ module Backhoe
     def dump skipped, trailer = nil
       if database.mysql?
         trailer = "; printf '\\n%s' #{Shellwords.escape(trailer)}" if trailer
-        bash_sh "{ #{mysqldump} --no-create-db --single-transaction --quick -e #{skip_table_options(skipped)} #{database.to_mysql_options} #{database.name}#{trailer}; } | #{pipe} #{target}"
+        bash_sh "{ #{mysqldump}#{database.to_mysql_options} --no-create-db --single-transaction --quick -e #{skip_table_options(skipped)} #{database.name}#{trailer}; } | #{pipe} #{target}"
       elsif database.postgresql?
         bash_sh "#{pg_dump} --column-inserts #{database.name} | #{pipe} #{target}"
       elsif database.sqlite?

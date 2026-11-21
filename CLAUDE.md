@@ -16,6 +16,7 @@ bundle exec rspec spec/backhoe/dump_spec.rb:15  # Run a single example by line
 ```
 
 Tests require running MySQL and PostgreSQL services. Test database config is in `spec/support/database.yml`.
+`spec/backhoe/mysql_password_spec.rb` creates a password-protected MySQL user through the admin account in `BACKHOE_TEST_MYSQL_USER` (default: the config's `root`).
 
 ## Architecture
 
