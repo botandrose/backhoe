@@ -161,6 +161,39 @@ RSpec.describe Backhoe::Dump do
         expect(actual).to eq database.schema
       end
     end
+
+    describe ":scrub_columns" do
+      before do
+        database.execute "INSERT INTO users (id, name, email, passhash) VALUES (7, 1, 'patient@example.org', 'secret')"
+        database.execute "INSERT INTO posts (user_id, body) VALUES (7, 'hello')"
+      end
+
+      it "overwrites the supplied columns with SQL expressions, keeping the schema" do
+        subject.scrub_columns = { users: { email: "CONCAT('user', id, '@example.com')", passhash: nil } }
+        subject.call
+        database.load_file path
+        expect(database.schema).to eq schema
+        expect(database.execute("SELECT id, name, email, passhash FROM users").to_a).to eq [[7, 1, "user7@example.com", nil]]
+        expect(database.execute("SELECT body FROM posts").to_a).to eq [["hello"]]
+      end
+
+      it "combines with :skip_columns on the same table, in a gzipped dump" do
+        subject.skip_columns = { users: [:passhash] }
+        subject.scrub_columns = { users: { email: nil } }
+        subject.path = Tempfile.new(["db", ".sql.gz"]).path
+        subject.call
+        system "gunzip -f #{subject.path}"
+        database.load_file subject.path.sub(".gz", "")
+        expect(database.execute("SELECT * FROM users").to_a).to eq [[7, 1, nil]]
+      end
+
+      it "leaves the live tables untouched and no copies behind" do
+        subject.scrub_columns = { users: { email: nil } }
+        subject.call
+        expect(database.execute("SELECT email FROM users").to_a).to eq [["patient@example.org"]]
+        expect(database.execute("SHOW TABLES").map(&:first)).not_to include(a_string_starting_with("sanitized_"))
+      end
+    end
   end
 end
 

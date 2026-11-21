@@ -2,21 +2,22 @@ require "rake"
 require "shellwords"
 
 module Backhoe
-  class Dump < Struct.new(:database, :path, :skip_tables, :skip_columns)
+  class Dump < Struct.new(:database, :path, :skip_tables, :skip_columns, :scrub_columns)
     include Rake::DSL
 
     def initialize *args
       super
       self.skip_tables ||= []
       self.skip_columns ||= {}
+      self.scrub_columns ||= {}
     end
 
     def call
-      if skip_tables.any? || skip_columns.any?
+      if skip_tables.any? || skip_columns.any? || scrub_columns.any?
         raise NotImplementedError if database.postgresql?
       end
-      if skip_columns.any?
-        SanitizedDatabase.new(skip_columns).dump do |tables, trailer|
+      if skip_columns.any? || scrub_columns.any?
+        SanitizedDatabase.new(skip_columns, scrub_columns).dump do |tables, trailer|
           dump skip_tables + tables, trailer
         end
       else
@@ -82,8 +83,9 @@ module Backhoe
     # Copies each table aside, strips the copy, dumps it in place of the original, and
     # renames it back at the end of the dump.
     class SanitizedDatabase
-      def initialize skip_columns
+      def initialize skip_columns, scrub_columns
         @skip_columns = skip_columns.to_h { |table, columns| [table.to_s, columns] }
+        @scrub_columns = scrub_columns.to_h { |table, columns| [table.to_s, columns] }
       end
 
       def dump
@@ -96,7 +98,7 @@ module Backhoe
       private
 
       def tables
-        @skip_columns.keys
+        (@skip_columns.keys + @scrub_columns.keys).uniq
       end
 
       def copy table
@@ -104,7 +106,17 @@ module Backhoe
         sql "DROP TABLE IF EXISTS `#{copy}`"
         sql "CREATE TABLE `#{copy}` LIKE `#{table}`"
         sql "INSERT INTO `#{copy}` SELECT * FROM `#{table}`"
-        sql "ALTER TABLE `#{copy}` #{@skip_columns[table].map { |column| "DROP `#{column}`" }.join(", ")}"
+
+        scrubs = @scrub_columns.fetch(table, {})
+        if scrubs.any?
+          sets = scrubs.map { |column, expression| "`#{column}` = #{expression.nil? ? "NULL" : expression}" }
+          sql "UPDATE `#{copy}` SET #{sets.join(", ")}"
+        end
+
+        skips = @skip_columns.fetch(table, [])
+        if skips.any?
+          sql "ALTER TABLE `#{copy}` #{skips.map { |column| "DROP `#{column}`" }.join(", ")}"
+        end
       end
 
       def sql query
